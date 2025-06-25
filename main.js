@@ -7,8 +7,7 @@ let frameCount = 0;
 let stepsSinceLastPause = 0;
 const maxSteps = 50; // Maximum steps before a pipe can be paused
 
-const gridSize = 20;
-const grid = new Array(gridSize).fill(null).map(() => new Array(gridSize).fill(null).map(() => new Array(gridSize).fill(false)));
+const gridSize = 100; // Increased grid size for more space
 
 class Pipe {
     constructor() {
@@ -23,17 +22,6 @@ class Pipe {
         this.joints.forEach(joint => scene.remove(joint));
         this.pipeSegments = [];
         this.joints = [];
-
-        if (this.path) {
-            this.path.forEach(p => {
-                const gx = Math.floor(p.x + gridSize / 2);
-                const gy = Math.floor(p.y + gridSize / 2);
-                const gz = Math.floor(p.z + gridSize / 2);
-                if (gx >= 0 && gx < gridSize && gy >= 0 && gy < gridSize && gz >= 0 && gz < gridSize) {
-                    grid[gx][gy][gz] = false;
-                }
-            });
-        }
 
         this.position = new THREE.Vector3(
             Math.floor(Math.random() * gridSize) - gridSize / 2,
@@ -85,7 +73,7 @@ class Pipe {
         this.pipeSegments.push(tubeMesh);
         scene.add(tubeMesh);
 
-        if (Math.random() > 0.7) {
+        if (Math.random() > 0.9) { // Decreased turning probability for longer runs
             const jointGeometry = new THREE.SphereGeometry(0.5, 8, 8);
             const jointMesh = new THREE.Mesh(jointGeometry, this.material);
             jointMesh.position.copy(this.position);
@@ -106,12 +94,7 @@ class Pipe {
             return true;
         }
 
-        if (grid[gx][gy][gz]) {
-            return true;
-        }
-
-        grid[gx][gy][gz] = true;
-        return false;
+        return false; // No pipe-to-pipe collision
     }
 }
 
@@ -134,7 +117,7 @@ function init() {
         pipes.push(new Pipe());
     }
 
-    camera.position.set(0, 0, 25);
+    camera.position.set(0, 0, 100); // Pulled back camera
     camera.lookAt(scene.position);
 
     animate();
