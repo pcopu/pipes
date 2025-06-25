@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { TeapotGeometry } from './TeapotGeometry.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
 
 let scene, camera, renderer;
 let pipes = [];
@@ -19,6 +19,8 @@ const classicColors = [
     0xff00ff, // Magenta
     0x00ffff, // Cyan
 ];
+
+let teapotModel;
 
 class Pipe {
     constructor() {
@@ -47,9 +49,15 @@ class Pipe {
         this.color = classicColors[Math.floor(Math.random() * classicColors.length)];
         this.material = new THREE.MeshLambertMaterial({ color: this.color });
 
-        const jointGeometry = new TeapotGeometry(0.5, 8);
-        const jointMesh = new THREE.Mesh(jointGeometry, this.material);
+        this.addJoint();
+    }
+
+    addJoint() {
+        if (!teapotModel) return;
+        const jointMesh = teapotModel.clone();
+        jointMesh.material = this.material;
         jointMesh.position.copy(this.position);
+        jointMesh.scale.set(0.5, 0.5, 0.5);
         scene.add(jointMesh);
         this.joints.push(jointMesh);
     }
@@ -85,11 +93,7 @@ class Pipe {
         scene.add(tubeMesh);
 
         if (Math.random() > 0.95) { // Even lower turning probability
-            const jointGeometry = new TeapotGeometry(0.5, 8);
-            const jointMesh = new THREE.Mesh(jointGeometry, this.material);
-            jointMesh.position.copy(this.position);
-            this.joints.push(jointMesh);
-            scene.add(jointMesh);
+            this.addJoint();
             this.randomizeDirection();
         }
         stepsSinceLastPause++;
@@ -124,14 +128,17 @@ function init() {
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
 
-    for (let i = 0; i < numPipes; i++) {
-        pipes.push(new Pipe());
-    }
+    const loader = new OBJLoader();
+    loader.load('teapot.obj', (obj) => {
+        teapotModel = obj.children[0];
+        for (let i = 0; i < numPipes; i++) {
+            pipes.push(new Pipe());
+        }
+        animate();
+    });
 
     camera.position.set(0, 0, 100);
     camera.lookAt(scene.position);
-
-    animate();
 }
 
 function animate() {
@@ -149,7 +156,9 @@ function animate() {
             stepsSinceLastPause = 0;
         }
 
-        pipes[activePipeIndex].grow();
+        if (pipes[activePipeIndex]) {
+            pipes[activePipeIndex].grow();
+        }
     }
 
     renderer.render(scene, camera);
