@@ -1,13 +1,24 @@
 import * as THREE from 'three';
+import { TeapotGeometry } from './TeapotGeometry.js';
 
 let scene, camera, renderer;
 let pipes = [];
 let activePipeIndex = 0;
 let frameCount = 0;
 let stepsSinceLastPause = 0;
-const maxSteps = 50; // Maximum steps before a pipe can be paused
+const maxSteps = 100; // Increased steps for longer runs
+const numPipes = 2; // Reduced number of pipes
 
-const gridSize = 100; // Increased grid size for more space
+const gridSize = 100;
+
+const classicColors = [
+    0xff0000, // Red
+    0x00ff00, // Green
+    0x0000ff, // Blue
+    0xffff00, // Yellow
+    0xff00ff, // Magenta
+    0x00ffff, // Cyan
+];
 
 class Pipe {
     constructor() {
@@ -33,10 +44,10 @@ class Pipe {
         this.direction = new THREE.Vector3(0, 0, 0);
         this.randomizeDirection();
 
-        this.color = new THREE.Color(Math.random(), Math.random(), Math.random());
+        this.color = classicColors[Math.floor(Math.random() * classicColors.length)];
         this.material = new THREE.MeshLambertMaterial({ color: this.color });
 
-        const jointGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+        const jointGeometry = new TeapotGeometry(0.5, 8);
         const jointMesh = new THREE.Mesh(jointGeometry, this.material);
         jointMesh.position.copy(this.position);
         scene.add(jointMesh);
@@ -73,8 +84,8 @@ class Pipe {
         this.pipeSegments.push(tubeMesh);
         scene.add(tubeMesh);
 
-        if (Math.random() > 0.9) { // Decreased turning probability for longer runs
-            const jointGeometry = new THREE.SphereGeometry(0.5, 8, 8);
+        if (Math.random() > 0.95) { // Even lower turning probability
+            const jointGeometry = new TeapotGeometry(0.5, 8);
             const jointMesh = new THREE.Mesh(jointGeometry, this.material);
             jointMesh.position.copy(this.position);
             this.joints.push(jointMesh);
@@ -94,7 +105,7 @@ class Pipe {
             return true;
         }
 
-        return false; // No pipe-to-pipe collision
+        return false;
     }
 }
 
@@ -113,11 +124,11 @@ function init() {
     directionalLight.position.set(1, 1, 1);
     scene.add(directionalLight);
 
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < numPipes; i++) {
         pipes.push(new Pipe());
     }
 
-    camera.position.set(0, 0, 100); // Pulled back camera
+    camera.position.set(0, 0, 100);
     camera.lookAt(scene.position);
 
     animate();
@@ -126,7 +137,7 @@ function init() {
 function animate() {
     requestAnimationFrame(animate);
 
-    if (frameCount % 5 === 0) {
+    if (frameCount % 10 === 0) { // Slower growth
         if (stepsSinceLastPause > maxSteps * Math.random()) {
             pipes[activePipeIndex].paused = true;
             if (Math.random() > 0.5) {
