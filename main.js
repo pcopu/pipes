@@ -72,7 +72,7 @@ function newScene() {
     occupiedCoordinates.clear();
 
     numPipes = Math.floor(Math.random() * 4) + 2; // 2 to 5 colors
-    sceneDuration = (Math.random() * 45 + 15) * 1000; // 15 to 60 seconds
+    sceneDuration = (Math.random() * 30 + 15) * 1000; // 15 to 45 seconds
     sceneStartTime = Date.now();
 
     const shuffledColors = classicColors.sort(() => 0.5 - Math.random());
