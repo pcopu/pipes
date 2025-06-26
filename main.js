@@ -22,6 +22,8 @@ const classicColors = [
 let sceneDuration;
 let sceneStartTime;
 let isFading = false;
+let speed = 3;
+let rotationEnabled = true;
 
 const vertexShader = `
     varying vec3 vNormal;
@@ -227,6 +229,36 @@ function init() {
 
     camera.position.set(0, 0, 120);
     camera.lookAt(scene.position);
+
+    // Controls
+    const fullscreenButton = document.getElementById('fullscreen');
+    fullscreenButton.addEventListener('click', () => {
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
+            document.documentElement.requestFullscreen();
+        }
+    });
+
+    const speedSlider = document.getElementById('speed');
+    speedSlider.addEventListener('input', (event) => {
+        speed = parseInt(event.target.value, 10);
+    });
+
+    const rotationToggle = document.getElementById('rotation');
+    rotationToggle.addEventListener('change', (event) => {
+        rotationEnabled = event.target.checked;
+    });
+
+    const controls = document.getElementById('controls');
+    document.addEventListener('mousemove', () => {
+        controls.style.opacity = 1.0;
+    });
+    setInterval(() => {
+        if (document.getElementById('controls').style.opacity > 0.2) {
+            document.getElementById('controls').style.opacity -= 0.1;
+        }
+    }, 3000);
 }
 
 function animate() {
@@ -253,12 +285,14 @@ function animate() {
         }
     }
 
-    const rotationTime = Date.now() * 0.0002;
-    const radius = gridSize;
-    camera.position.x = Math.sin(rotationTime) * radius;
-    camera.position.z = Math.cos(rotationTime) * radius;
-    camera.position.y = Math.sin(rotationTime * 0.5) * (gridSize * 0.3);
-    camera.lookAt(scene.position);
+    if (rotationEnabled) {
+        const rotationTime = Date.now() * 0.0002;
+        const radius = gridSize;
+        camera.position.x = Math.sin(rotationTime) * radius;
+        camera.position.z = Math.cos(rotationTime) * radius;
+        camera.position.y = Math.sin(rotationTime * 0.5) * (gridSize * 0.3);
+        camera.lookAt(scene.position);
+    }
 
     if (!isFading) {
         if (stepsSinceLastPause > maxSteps) {
@@ -276,8 +310,7 @@ function animate() {
         }
 
         if (pipes[activePipeIndex]) {
-            // Increased from 2 to 3 for a speed boost
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < speed; i++) {
                 pipes[activePipeIndex].grow();
             }
         }
