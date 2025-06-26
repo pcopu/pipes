@@ -22,7 +22,7 @@ const classicColors = [
 let sceneDuration;
 let sceneStartTime;
 let isFading = false;
-let speed = 3;
+let speed = 5;
 let rotationEnabled = true;
 
 const vertexShader = `
@@ -231,13 +231,16 @@ function init() {
     camera.lookAt(scene.position);
 
     // Controls
-    const fullscreenButton = document.getElementById('fullscreen');
-    fullscreenButton.addEventListener('click', () => {
-        if (document.fullscreenElement) {
-            document.exitFullscreen();
-        } else {
-            document.documentElement.requestFullscreen();
-        }
+    const gearIcon = document.getElementById('gear-icon');
+    const settingsModal = document.getElementById('settings-modal');
+    const closeButton = document.querySelector('.close-button');
+
+    gearIcon.addEventListener('click', () => {
+        settingsModal.classList.toggle('hidden');
+    });
+
+    closeButton.addEventListener('click', () => {
+        settingsModal.classList.add('hidden');
     });
 
     const speedSlider = document.getElementById('speed');
@@ -250,15 +253,32 @@ function init() {
         rotationEnabled = event.target.checked;
     });
 
-    const controls = document.getElementById('controls');
-    document.addEventListener('mousemove', () => {
-        controls.style.opacity = 1.0;
-    });
-    setInterval(() => {
-        if (document.getElementById('controls').style.opacity > 0.2) {
-            document.getElementById('controls').style.opacity -= 0.1;
+    const fullscreenButton = document.getElementById('fullscreen-btn');
+    fullscreenButton.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+            settingsModal.classList.add('hidden');
+            gearIcon.style.opacity = 0;
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
         }
-    }, 3000);
+    });
+
+    let fadeTimeout;
+    document.addEventListener('mousemove', () => {
+        gearIcon.style.opacity = 1.0;
+        clearTimeout(fadeTimeout);
+        fadeTimeout = setTimeout(() => {
+            gearIcon.style.opacity = 0.2;
+        }, 2000);
+    });
+
+    // Initial fade
+    fadeTimeout = setTimeout(() => {
+        gearIcon.style.opacity = 0.2;
+    }, 2000);
 }
 
 function animate() {
